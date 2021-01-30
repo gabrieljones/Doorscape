@@ -1,11 +1,13 @@
 bool amDoor = false;
 
-byte doorCombo[6] = {8, 8, 8, 8, 8, 8};
+byte doorCombo[6] = {4, 4, 4, 4, 4, 4};
 Color cardColors[9] = {RED, YELLOW, GREEN, BLUE, RED, YELLOW, GREEN, BLUE, dim(WHITE, 50)};
 
-enum cardTypes {REDCARD, YELCARD, GRECARD, BLUCARD, REDTRAP, YELTRAP, GRETRAP, BLUTRAP, EMPTY};
-byte deckContents[13] = {REDCARD, YELCARD, GRECARD, BLUCARD, REDCARD, YELCARD, GRECARD, BLUCARD, REDTRAP, YELTRAP, GRETRAP, BLUTRAP, EMPTY};
+enum cardTypes {REDCARD, YELCARD, GRECARD, BLUCARD, EMPTY};
+byte deckContents[13] = {REDCARD, YELCARD, GRECARD, BLUCARD, REDCARD, YELCARD, GRECARD, BLUCARD, REDCARD, YELCARD, GRECARD, BLUCARD, EMPTY};
 byte deckPosition = 0;
+
+byte score = 0;
 
 Timer doorTimer;
 #define DOOR_CODE_TIME 20000
@@ -18,13 +20,18 @@ bool isSolved = false;
 void setup() {
   // put your setup code here, to run once:
   randomize();
+  newDoor();
   shuffleDeck();
 }
 
 void loop() {
 
   if (amDoor) {
-    doorLoop();
+    if (score < 6) {
+      doorLoop();
+    } else {
+      winLoop();
+    }
   } else {
     cardLoop();
     cardDisplay();
@@ -39,20 +46,6 @@ void doorLoop() {
     }
   }
 
-  if (doorTimer.isExpired()) {
-    //reset doorTimer
-    doorTimer.set(DOOR_CODE_TIME);
-    //randomize door code
-    FOREACH_FACE(f) {
-      doorCombo[f] = random(4);
-      if (doorCombo[f] == 4) {
-        doorCombo[f] = 8;
-      }
-    }
-    //reset isSolved
-    isSolved = false;
-  }
-
   //look at neighbors, determine if the combo has been made
   byte correctNeighbors = 0;
   FOREACH_FACE(f) {
@@ -64,13 +57,13 @@ void doorLoop() {
         }
       }
     } else {//no neighbor!
-      if (doorCombo[f] == 8) {//this face wants NO NEIGHBOR
+      if (doorCombo[f] == 4) {//this face wants NO NEIGHBOR
         correctNeighbors++;
       }
     }
   }//end of neighborhood check loop
 
-  if (correctNeighbors == 6) {
+  if (correctNeighbors == 5) {
     isSolved = true;
   }
 
@@ -80,12 +73,38 @@ void doorLoop() {
     setColorOnFace(YELLOW, random(5));
     setColorOnFace(GREEN, random(5));
     setColorOnFace(BLUE, random(5));
+    score++;
+    newDoor();
   } else {
     FOREACH_FACE(f) {
       setColorOnFace(cardColors[doorCombo[f]], f);
     }
   }
 
+}
+
+void newDoor() {
+    //randomize door code
+    FOREACH_FACE(f) {
+      doorCombo[f] = random(3);
+      if (doorCombo[f] == 4) {
+        doorCombo[f] = 8;
+      }
+    }
+    //reset isSolved
+    isSolved = false;
+}
+
+void winLoop() {
+  if (buttonSingleClicked()) {
+    isSolved = false;
+    score = 0;
+  }
+  setColor(WHITE);
+  setColorOnFace(RED, random(5));
+  setColorOnFace(YELLOW, random(5));
+  setColorOnFace(GREEN, random(5));
+  setColorOnFace(BLUE, random(5));
 }
 
 void cardLoop() {
