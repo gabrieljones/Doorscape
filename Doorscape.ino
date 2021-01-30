@@ -1,7 +1,7 @@
 bool amDoor = false;
 
 byte doorCombo[6] = {4, 4, 4, 4, 4, 4};
-Color cardColors[9] = {RED, YELLOW, GREEN, BLUE, RED, YELLOW, GREEN, BLUE, dim(WHITE, 50)};
+Color cardColors[9] = {RED, YELLOW, GREEN, BLUE, dim(WHITE, 50)};
 
 enum cardTypes {REDCARD, YELCARD, GRECARD, BLUCARD, EMPTY};
 byte deckContents[13] = {REDCARD, YELCARD, GRECARD, BLUCARD, REDCARD, YELCARD, GRECARD, BLUCARD, REDCARD, YELCARD, GRECARD, BLUCARD, EMPTY};
@@ -27,7 +27,7 @@ void setup() {
 void loop() {
 
   if (amDoor) {
-    if (score < 6) {
+    if (score < 2) {
       doorLoop();
     } else {
       winLoop();
@@ -86,10 +86,7 @@ void doorLoop() {
 void newDoor() {
     //randomize door code
     FOREACH_FACE(f) {
-      doorCombo[f] = random(3);
-      if (doorCombo[f] == 4) {
-        doorCombo[f] = 8;
-      }
+      doorCombo[f] = random(4);
     }
     //reset isSolved
     isSolved = false;
