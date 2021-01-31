@@ -9,6 +9,8 @@ byte deckPosition = 0;
 
 byte score = 0;
 
+byte oldCorrect = 0;
+
 Timer doorTimer;
 #define DOOR_CODE_TIME 20000
 
@@ -53,18 +55,28 @@ void doorLoop() {
   byte correctNeighbors = 0;
   FOREACH_FACE(f) {
     if (!isValueReceivedOnFaceExpired(f)) {//neighbor!
-      if (doorCombo[f] < 4) {//this face WANTS a neighbor
+      if (doorCombo[f] > EMPTY) {//this face WANTS a neighbor
         byte neighborColor = getCardColor(getLastValueReceivedOnFace(f));
         if (neighborColor == doorCombo[f]) {
+          setColorOnFace(WHITE, f);
           correctNeighbors++;
+        } else {
+          setColorOnFace(cardColors[doorCombo[f]], f);
         }
       }
     } else {//no neighbor!
       if (doorCombo[f] == EMPTY) {//this face wants NO NEIGHBOR
         correctNeighbors++;
       }
+      setColorOnFace(cardColors[doorCombo[f]], f);
     }
   }//end of neighborhood check loop
+  
+  
+  if (oldCorrect != correctNeighbors) {
+    console.log(`${oldCorrect} >>> ${correctNeighbors}`);
+    oldCorrect = correctNeighbors;
+  }
 
   if (correctNeighbors == 5) {
     isSolved = true;
@@ -80,9 +92,9 @@ void doorLoop() {
     newDoor();
   } else {
     setValueSentOnAllFaces(EMPTY);
-    FOREACH_FACE(f) {
-      setColorOnFace(cardColors[doorCombo[f]], f);
-    }
+    //FOREACH_FACE(f) {
+      //setColorOnFace(cardColors[doorCombo[f]], f);
+    //}
   }
 
 }
