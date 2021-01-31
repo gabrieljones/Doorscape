@@ -1,9 +1,9 @@
 bool amDoor = false;
 
 byte doorCombo[6] = {4, 4, 4, 4, 4, 4};
-Color cardColors[9] = {RED, YELLOW, GREEN, BLUE, dim(WHITE, 50)};
+Color cardColors[9] = {dim(WHITE, 50), RED, YELLOW, GREEN, BLUE};
 
-enum cardTypes {REDCARD, YELCARD, GRECARD, BLUCARD, EMPTY};
+enum protoc {EMPTY, REDCARD, YELCARD, GRECARD, BLUCARD, WON};
 byte deckContents[13] = {REDCARD, YELCARD, GRECARD, BLUCARD, REDCARD, YELCARD, GRECARD, BLUCARD, REDCARD, YELCARD, GRECARD, BLUCARD, EMPTY};
 byte deckPosition = 0;
 
@@ -14,6 +14,9 @@ Timer doorTimer;
 
 Timer drawAnimTimer;
 #define DRAW_ANIM_TIME 400
+
+#define SCORE_TO_WIN 6
+//#define SCORE_TO_WIN 1
 
 bool isSolved = false;
 
@@ -27,7 +30,7 @@ void setup() {
 void loop() {
 
   if (amDoor) {
-    if (score < 2) {
+    if (score < SCORE_TO_WIN) {
       doorLoop();
     } else {
       winLoop();
@@ -57,7 +60,7 @@ void doorLoop() {
         }
       }
     } else {//no neighbor!
-      if (doorCombo[f] == 4) {//this face wants NO NEIGHBOR
+      if (doorCombo[f] == EMPTY) {//this face wants NO NEIGHBOR
         correctNeighbors++;
       }
     }
@@ -76,6 +79,7 @@ void doorLoop() {
     score++;
     newDoor();
   } else {
+    setValueSentOnAllFaces(EMPTY);
     FOREACH_FACE(f) {
       setColorOnFace(cardColors[doorCombo[f]], f);
     }
@@ -102,6 +106,7 @@ void winLoop() {
   setColorOnFace(YELLOW, random(5));
   setColorOnFace(GREEN, random(5));
   setColorOnFace(BLUE, random(5));
+  setValueSentOnAllFaces(WON);
 }
 
 void cardLoop() {
@@ -122,6 +127,16 @@ void cardLoop() {
   if (buttonMultiClicked()) {
     if (buttonClickCount() == 3 ) {
       amDoor = true;
+      score = SCORE_TO_WIN;
+      isSolved = true;
+    }
+  }
+  FOREACH_FACE(f) {
+    if (!isValueReceivedOnFaceExpired(f)) {//neighbor!
+      if (getLastValueReceivedOnFace(f) == WON) {
+        deckPosition = 0;
+        shuffleDeck();
+      }
     }
   }
 
